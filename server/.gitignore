@@ -1,0 +1,43 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+
+# Flask config files
+instance/
+*.db
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Dependencies
+*.tar.gz
+*.egg-info/
+
+# Python testing
+.coverage
+nosetests.xml
+coverage.xml
+*.cover
+
+# Build directories
+build/
+dist/
