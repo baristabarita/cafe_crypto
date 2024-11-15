@@ -15,6 +15,8 @@ export default {
       fontFamily: {
         'bitter': ['Bitter','sans-serif'],
         'roboto' : ['Roboto', 'sans-serif'],
+        'satisfy' : ['Satisfy', 'sans-serif'],
+        'yellowtail' : ['YellowTail', 'sans-serif'],
       },
       boxShadow: {
         'custom': '4px 4px 1px rgba(0, 0, 0, 0.4)'

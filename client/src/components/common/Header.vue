@@ -9,8 +9,8 @@
       
       <!-- Text Overlay -->
       <div class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40">
-        <h1 class="text-6xl font-bold text-white drop-shadow-md">Cafe Crypto</h1>
-        <p class="text-white text-xl mt-2 drop-shadow-md">Where Your Files Are Brewed with Security</p>
+        <h1 class="text-8xl text-shadow-custom font-bold font-satisfy text-white drop-shadow-md">Cafe Crypto</h1>
+        <p class="text-white text-md font-bitter mt-7 drop-shadow-md">Where Your Files Are Brewed with Security ☕️</p>
       </div>
     </div>
   </template>

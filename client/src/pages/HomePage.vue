@@ -1,87 +1,137 @@
+<!-- pages/HomePage.vue -->
 <script>
-    import Header from "../components/Header.vue";
+import Header from "../components/common/Header.vue";
+import BaseButton from "../components/ui/BaseButton.vue";
+import FileInput from "../components/ui/FileInput.vue";
+// import { encryptFile, decryptFile } from "../services/api";
 
-    export default {
-        components: {
-            Header,
-        },
-        data() {
-            return {
-                mode: null, // 'encrypt' or 'decrypt'
-                file: null, // The file to be encrypted or decrypted
-            };
-        },
-        methods: {
-            setMode(mode) {
-                this.mode = mode;
-            },
-            handleFileUpload(event) {
-                this.file = event.target.files[0];
-            },
-            processFile() {
-                if (this.mode && this.file) {
-                    // Here you would send the file to the backend API for processing (encrypt/decrypt)
-                    console.log(`Processing ${this.mode} for file:`, this.file.name);
-                }
-            },
-        },
+export default {
+  name: "HomePage",
+  components: {
+    Header,
+    BaseButton,
+    FileInput,
+  },
+  data() {
+    return {
+      mode: null,
+      file: null,
+      isProcessing: false,
+      error: null,
+      successMessage: null,
     };
+  },
+  computed: {
+    isFormValid() {
+      return this.mode && this.file;
+    },
+    buttonText() {
+      if (this.isProcessing) return "Processing...";
+      return this.mode === "encrypt" ? "Start Encryption" : "Start Decryption";
+    },
+  },
+  methods: {
+    setMode(mode) {
+      this.mode = mode;
+      this.clearMessages();
+    },
+    handleFileSelected(file) {
+      this.file = file;
+      this.clearMessages();
+    },
+    clearMessages() {
+      this.error = null;
+      this.successMessage = null;
+    },
+    async processFile() {
+      if (!this.isFormValid) return;
+
+      this.isProcessing = true;
+      this.clearMessages();
+
+      try {
+        const processFunction = this.mode === "encrypt" ? encryptFile : decryptFile;
+        const response = await processFunction(this.file);
+        
+        // Handle successful response
+        this.successMessage = `File successfully ${this.mode}ed!`;
+        
+        // Handle file download if provided by the server
+        if (response.data.downloadUrl) {
+          window.location.href = response.data.downloadUrl;
+        }
+      } catch (err) {
+        this.error = err.response?.data?.message || 
+          `Failed to ${this.mode} file. Please try again.`;
+      } finally {
+        this.isProcessing = false;
+      }
+    },
+  },
+};
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col items-center bg-cafeLight">
-      <!-- Navbar (ensure it’s included in the layout, not duplicated here) -->
-  
-      <!-- Header Section (no gap between navbar and header) -->
-      <Header />
-  
-      <!-- Main Content Section -->
-      <div class="flex-grow flex items-center justify-center w-full">
-        <div class="bg-white flex flex-col p-8 rounded-lg shadow-lg max-w-xl w-full items-center justify-center">
-          <h1 class="text-2xl font-bold text-cafeAccent text-center mb-4">
-            File Encryption and Decryption
-          </h1>
-  
-          <!-- Select Mode Section -->
-          <div class="flex justify-center mb-6">
-            <button @click="setMode('encrypt')" :class="{
-                'bg-cafeAccent text-white': mode === 'encrypt',
-                'bg-cafeDark text-white': mode !== 'encrypt'
-              }" class="px-6 py-2 rounded-md mr-4">
-              Encrypt
-            </button>
-            <button @click="setMode('decrypt')" :class="{
-                'bg-cafeAccent text-white': mode === 'decrypt',
-                'bg-cafeDark text-white': mode !== 'decrypt'
-              }" class="px-6 py-2 rounded-md">
-              Decrypt
-            </button>
-          </div>
-  
-          <!-- File Upload Section -->
-          <div class="mb-6 w-full">
-            <input type="file" @change="handleFileUpload"
-              class="px-4 py-2 border border-cafeDark rounded-md w-full" />
-          </div>
-  
-          <div v-if="file" class="text-center mb-6">
-            <p class="text-cafeAccent">Selected File: {{ file.name }}</p>
-          </div>
-  
-          <!-- Action Button Section -->
-          <div class="text-center">
-            <button v-if="file" @click="processFile" :disabled="!mode"
-              class="px-6 py-2 bg-cafeAccent text-white rounded-md">
-              {{ "Start " + (mode === "encrypt" ? "Encryption" : "Decryption") }}
-            </button>
-          </div>
+  <div class="min-h-screen flex flex-col items-center bg-cafeLight">
+    <!-- Header Section -->
+    <Header />
+
+    <!-- Main Content Section -->
+    <div class="flex-grow flex items-center justify-center w-full p-6">
+      <div class="bg-white flex flex-col p-8 rounded-lg shadow-lg max-w-xl w-full">
+        <h1 class="text-2xl font-bold text-cafeAccent text-center mb-6">
+          File Encryption and Decryption
+        </h1>
+
+        <!-- Mode Selection -->
+        <div class="flex justify-center mb-8 space-x-4">
+          <BaseButton
+            @click="setMode('encrypt')"
+            :variant="mode === 'encrypt' ? 'primary' : 'secondary'"
+          >
+            Encrypt
+          </BaseButton>
+          <BaseButton
+            @click="setMode('decrypt')"
+            :variant="mode === 'decrypt' ? 'primary' : 'secondary'"
+          >
+            Decrypt
+          </BaseButton>
+        </div>
+
+        <!-- File Upload -->
+        <div class="mb-8">
+          <FileInput
+            id="file-upload"
+            :label="mode ? `Select file to ${mode}` : 'Select a file'"
+            accept=".txt,.pdf,.doc,.docx"
+            @file-selected="handleFileSelected"
+          />
+        </div>
+
+        <!-- Status Messages -->
+        <div v-if="error || successMessage" class="mb-6">
+          <p v-if="error" class="text-red-500 text-center">{{ error }}</p>
+          <p v-if="successMessage" class="text-green-500 text-center">
+            {{ successMessage }}
+          </p>
+        </div>
+
+        <!-- Action Button -->
+        <div class="text-center">
+          <BaseButton
+            @click="processFile"
+            :disabled="!isFormValid || isProcessing"
+            variant="primary"
+          >
+            <span v-if="isProcessing" class="flex items-center">
+              <i class="pi pi-spinner pi-spin mr-2"></i>
+              {{ buttonText }}
+            </span>
+            <span v-else>{{ buttonText }}</span>
+          </BaseButton>
         </div>
       </div>
-  
-      <!-- Footer (ensure it’s included in the layout, not duplicated here) -->
     </div>
-  </template>
-
-<style scoped>
-/* Add any custom styles for your homepage */
-</style>
+  </div>
+</template>
