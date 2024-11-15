@@ -47,7 +47,7 @@ export default {
           :to="item.path"
           class="text-white transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
           :class="{ 
-            'bg-cafeDark': $route.path === item.path,
+            'bg-cafeDark text-cafeFooter': $route.path === item.path,
             'hover:bg-cafeDark/80': $route.path !== item.path 
           }"
         >
