@@ -1,20 +1,29 @@
-<script setup>
-  import InputText from 'primevue/inputtext';
-  import Button from 'primevue/button';
-  import { ref } from 'vue';
+<script>
+  
+  import NavBar from './components/NavBar.vue';
+  import Footer from './components/Footer.vue';
 
-  const text = ref('')
+  export default {
+  components: {
+    NavBar,
+    Footer,
+  }
+};
 </script>
 
 
 <template>
-  <div>
-    <span class="text-xl font-bold mb-4 block">Hello World</span>
-    <InputText v-model="text" />
-    <Button label="Save" />
-    {{ text }}
+  <div id="app">
+    <NavBar />
+    <router-view/>
+    <Footer />
   </div>
 
 </template>
 
-
+<style>
+/* Global styles */
+body {
+  background-color: #FAF7F0; /* Cafe light */
+}
+</style>
