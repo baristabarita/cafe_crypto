@@ -1,82 +1,7 @@
-<!-- pages/HomePage.vue -->
-<script>
-import Header from "../components/common/Header.vue";
-import BaseButton from "../components/ui/BaseButton.vue";
-import FileInput from "../components/ui/FileInput.vue";
-// import { encryptFile, decryptFile } from "../services/api";
-
-export default {
-  name: "HomePage",
-  components: {
-    Header,
-    BaseButton,
-    FileInput,
-  },
-  data() {
-    return {
-      mode: null,
-      file: null,
-      isProcessing: false,
-      error: null,
-      successMessage: null,
-    };
-  },
-  computed: {
-    isFormValid() {
-      return this.mode && this.file;
-    },
-    buttonText() {
-      if (this.isProcessing) return "Processing...";
-      return this.mode === "encrypt" ? "Start Encryption" : "Start Decryption";
-    },
-  },
-  methods: {
-    setMode(mode) {
-      this.mode = mode;
-      this.clearMessages();
-    },
-    handleFileSelected(file) {
-      this.file = file;
-      this.clearMessages();
-    },
-    clearMessages() {
-      this.error = null;
-      this.successMessage = null;
-    },
-    async processFile() {
-      if (!this.isFormValid) return;
-
-      this.isProcessing = true;
-      this.clearMessages();
-
-      try {
-        const processFunction = this.mode === "encrypt" ? encryptFile : decryptFile;
-        const response = await processFunction(this.file);
-        
-        // Handle successful response
-        this.successMessage = `File successfully ${this.mode}ed!`;
-        
-        // Handle file download if provided by the server
-        if (response.data.downloadUrl) {
-          window.location.href = response.data.downloadUrl;
-        }
-      } catch (err) {
-        this.error = err.response?.data?.message || 
-          `Failed to ${this.mode} file. Please try again.`;
-      } finally {
-        this.isProcessing = false;
-      }
-    },
-  },
-};
-</script>
-
 <template>
   <div class="min-h-screen flex flex-col items-center bg-cafeLight">
-    <!-- Header Section -->
     <Header />
 
-    <!-- Main Content Section -->
     <div class="flex-grow flex items-center justify-center w-full p-6">
       <div class="bg-white flex flex-col p-8 rounded-lg shadow-lg max-w-xl w-full">
         <h1 class="text-2xl font-bold text-cafeAccent text-center mb-6">
@@ -99,39 +24,179 @@ export default {
           </BaseButton>
         </div>
 
-        <!-- File Upload -->
-        <div class="mb-8">
+        <!-- File Upload Section -->
+        <div v-if="mode" class="space-y-6">
+          <!-- Main File Upload -->
           <FileInput
-            id="file-upload"
-            :label="mode ? `Select file to ${mode}` : 'Select a file'"
-            accept=".txt,.pdf,.doc,.docx"
-            @file-selected="handleFileSelected"
+            id="main-file-upload"
+            :label="mode === 'decrypt' ? 'Select encrypted file' : 'Select file to encrypt'"
+            accept="*"
+            @file-selected="file => handleFileSelected(file, 'main')"
+            :uploaded-file="files.main"
           />
-        </div>
 
-        <!-- Status Messages -->
-        <div v-if="error || successMessage" class="mb-6">
-          <p v-if="error" class="text-red-500 text-center">{{ error }}</p>
-          <p v-if="successMessage" class="text-green-500 text-center">
-            {{ successMessage }}
-          </p>
-        </div>
+          <!-- Key File Upload (only for decryption) -->
+          <FileInput
+            v-if="mode === 'decrypt'"
+            id="key-file-upload"
+            label="Select key file"
+            accept="*"
+            @file-selected="file => handleFileSelected(file, 'key')"
+            :uploaded-file="files.key"
+          />
 
-        <!-- Action Button -->
-        <div class="text-center">
-          <BaseButton
-            @click="processFile"
-            :disabled="!isFormValid || isProcessing"
-            variant="primary"
-          >
-            <span v-if="isProcessing" class="flex items-center">
-              <i class="pi pi-spinner pi-spin mr-2"></i>
-              {{ buttonText }}
-            </span>
-            <span v-else>{{ buttonText }}</span>
-          </BaseButton>
+          <!-- Action Buttons -->
+          <div class="text-center mt-6 space-y-4">
+            <BaseButton
+              @click="processFile"
+              :disabled="!isFormValid || isProcessing"
+              variant="primary"
+              class="w-full"
+            >
+              <span class="flex items-center justify-center space-x-2">
+                <i v-if="isProcessing" class="pi pi-spinner animate-spin"></i>
+                <span>{{ buttonText }}</span>
+              </span>
+            </BaseButton>
+
+            <!-- Download Section -->
+            <div v-if="downloadUrls.length > 0" class="space-y-2">
+              <div class="space-y-2">
+                <BaseButton
+                  v-for="download in downloadUrls"
+                  :key="download.url"
+                  @click="() => downloadFile(download.url)"
+                  variant="success"
+                  class="w-full flex items-center justify-center space-x-2"
+                >
+                  <i class="pi pi-download"></i>
+                  <span>{{ download.label }}</span>
+                </BaseButton>
+              </div>
+            </div>
+
+            <!-- Add More Files Button -->
+            <BaseButton
+              v-if="!isProcessing && (downloadUrls.length > 0 || files.main)"
+              @click="clearForm"
+              variant="secondary"
+              class="w-full"
+            >
+              Process Another File
+            </BaseButton>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Processing Animation -->
+    <ProcessingAnimation v-if="isProcessing" />
   </div>
 </template>
+
+<script>
+import Header from "../components/common/Header.vue";
+import BaseButton from "../components/ui/BaseButton.vue";
+import FileInput from "../components/ui/FileInput.vue";
+import ProcessingAnimation from "../components/ui/ProcessingAnimation.vue";
+import { encryptFile, decryptFile, downloadFile } from "../services/api";
+
+export default {
+  name: "HomePage",
+  components: {
+    Header,
+    BaseButton,
+    FileInput,
+    ProcessingAnimation,
+  },
+  data() {
+    return {
+      mode: null,
+      files: {
+        main: null,
+        key: null,
+      },
+      downloadUrls: [],
+      isProcessing: false,
+    };
+  },
+  computed: {
+    isFormValid() {
+      if (this.mode === "encrypt") {
+        return this.files.main !== null;
+      }
+      return this.files.main !== null && this.files.key !== null;
+    },
+    buttonText() {
+      if (!this.mode) return "Select Mode";
+      if (this.isProcessing) return "Processing...";
+      return this.mode === "encrypt" ? "Encrypt File" : "Decrypt File";
+    },
+  },
+  methods: {
+    setMode(mode) {
+      this.mode = mode;
+      this.clearForm();
+    },
+    handleFileSelected(file, type = "main") {
+      this.files[type] = file;
+      if (file === null) {
+        this.downloadUrls = [];
+      }
+    },
+
+    clearForm() {
+      this.files = { main: null, key: null };
+      this.downloadUrls = [];
+    },
+
+    async processFile() {
+      if (!this.isFormValid) return;
+
+      this.isProcessing = true;
+      this.downloadUrls = [];
+
+      try {
+        let response;
+        if (this.mode === "encrypt") {
+          response = await encryptFile(this.files.main);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        } else {
+          response = await decryptFile(this.files.main, this.files.key);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+
+        this.downloadUrls = [
+          ...(response.data.encrypted_file_url
+            ? [{ label: "Download Encrypted File", url: response.data.encrypted_file_url }]
+            : []),
+          ...(response.data.keys_file_url
+            ? [{ label: "Download Key File", url: response.data.keys_file_url }]
+            : []),
+          ...(response.data.decrypted_file_url
+            ? [{ label: "Download Decrypted File", url: response.data.decrypted_file_url }]
+            : []),
+        ];
+      } catch (err) {
+        console.error(err);
+        this.downloadUrls = [];
+      } finally {
+        this.isProcessing = false;
+      }
+    },
+
+    async downloadFile(url) {
+      if (!url) return;
+      
+      try {
+        this.isProcessing = true;
+        await downloadFile(url);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isProcessing = false;
+      }
+    },
+  },
+};
+</script>
