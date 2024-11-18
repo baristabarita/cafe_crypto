@@ -5,6 +5,7 @@
         'px-6 py-2 rounded-md transition-colors',
         variant === 'primary' ? 'bg-cafeAccent text-white hover:bg-cafeDark' : 
         variant === 'secondary' ? 'bg-cafeDark text-white hover:bg-cafeAccent' :
+        variant === 'tertiary' ? 'bg-cafeFooter text-white hover:bg-cafeAccent' :
         'bg-gray-200 text-gray-700 hover:bg-gray-300'
       ]"
       :disabled="disabled"
@@ -21,7 +22,7 @@
       variant: {
         type: String,
         default: 'primary',
-        validator: value => ['primary', 'secondary', 'default'].includes(value)
+        validator: value => ['primary', 'secondary', 'tertiary', 'default'].includes(value)
       },
       disabled: {
         type: Boolean,

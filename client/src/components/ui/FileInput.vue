@@ -29,7 +29,7 @@
             </span>
             <button 
               @click.stop="handleRemoveFile"
-              class="text-xs text-red-500 hover:text-red-700 font-medium"
+              class="text-xs text-gray-500 hover:text-gray-700 font-bold"
             >
               Remove File
             </button>

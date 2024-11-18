@@ -79,7 +79,7 @@
             <BaseButton
               v-if="!isProcessing && (downloadUrls.length > 0 || files.main)"
               @click="clearForm"
-              variant="secondary"
+              variant="tertiary"
               class="w-full"
             >
               Process Another File

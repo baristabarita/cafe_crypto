@@ -41,3 +41,6 @@ coverage.xml
 # Build directories
 build/
 dist/
+
+# Ignore all files in the server/downloads directory
+downloads/*

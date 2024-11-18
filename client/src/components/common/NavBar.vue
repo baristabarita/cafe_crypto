@@ -1,8 +1,8 @@
 <!-- components/common/NavBar.vue -->
 <script>
 const navigationItems = [
-  { name: 'Home', path: '/' },
-  { name: 'About', path: '/about' }
+  { name: 'HOME', path: '/' },
+  { name: 'ABOUT', path: '/about' }
 ];
 
 export default {
@@ -30,12 +30,12 @@ export default {
 </script>
 
 <template>
-  <header class="bg-cafeAccent shadow-md font-bitter sticky top-0 z-50">
+  <header class="bg-cafeAccent shadow-lg font-bitter sticky top-0 z-50">
     <nav class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
       <!-- Logo Section -->
       <div class="flex items-center">
         <router-link to="/" class="flex items-center space-x-2">
-          <img src="/images/logo2.png" alt="Logo" class="h-12 w-auto ml-5" />
+          <img src="/images/logo2.png" alt="Logo" class="h-20 w-auto ml-5" />
         </router-link>
       </div>
 
@@ -45,13 +45,17 @@ export default {
           v-for="item in navigationItems"
           :key="item.path"
           :to="item.path"
-          class="text-white transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
-          :class="{ 
-            'bg-cafeDark text-cafeFooter': $route.path === item.path,
-            'hover:bg-cafeDark/80': $route.path !== item.path 
+          class="font-roboto transition-all duration-200 px-3 py-2 text-lg font-bold relative"
+          :class="{
+            'hover:text-cafeFooter': $route.path !== item.path
           }"
-        >
+          >
           {{ item.name }}
+          <!-- Active Indicator -->
+          <div
+            v-if="$route.path === item.path"
+            class="absolute bottom-0 left-0 w-full h-1 bg-white text-white rounded-t-sm transition-all duration-200"
+          ></div>
         </router-link>
       </div>
 
