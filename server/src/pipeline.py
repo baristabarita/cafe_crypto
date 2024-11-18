@@ -30,15 +30,15 @@ class CryptoPipeline:
         
         # Apply encryption algorithms in sequence
         # 1. Caesar Cipher
-        caesar_shift = 13  # You can modify this
+        caesar_shift = 13
         data = self.caesar.encrypt(data, caesar_shift)
         
         # 2. Transposition
-        trans_key = 8  # You can modify this
+        trans_key = 8 
         data = self.transposition.encrypt(data, trans_key)
         
         # 3. Vigenere
-        vigenere_key = b"SECRETKEY"  # You can modify this
+        vigenere_key = b"SECRETKEY"
         data = self.vigenere.encrypt(data, vigenere_key)
         
         # 4. Vernam
